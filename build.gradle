@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group 'eu.byncing'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url('https://byncing.eu//repository/') }
+}
+
+dependencies {
+    implementation('eu.byncing:scheduler:1.0.0-SNAPSHOT')
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.6'
+}
