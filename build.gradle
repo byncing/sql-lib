@@ -10,7 +10,25 @@ repositories {
     maven { url('https://byncing.eu//repository/') }
 }
 
+configurations {
+    extraLibs
+}
+
 dependencies {
-    implementation('eu.byncing:scheduler:1.0.0-SNAPSHOT')
-    implementation group: 'mysql', name: 'mysql-connector-java', version: '5.1.6'
+    extraLibs compileOnly('eu.byncing:scheduler:1.0.0-SNAPSHOT')
+    extraLibs compileOnly('mysql:mysql-connector-java:5.1.6')
+
+    configurations.implementation.extendsFrom(configurations.extraLibs)
+}
+
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
