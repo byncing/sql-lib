@@ -12,8 +12,8 @@ public class TableUpdate {
 
     private SqlKeys keys;
 
-    private SqlKeys wheres = new SqlKeys();
-    private SqlValues wheresValues = new SqlValues();
+    private SqlKeys where = new SqlKeys();
+    private SqlValues whereValues = new SqlValues();
 
     public TableUpdate(SqlLib lib, Table table, SqlKeys keys) {
         this.lib = lib;
@@ -25,16 +25,24 @@ public class TableUpdate {
         this(lib, table, new SqlKeys());
     }
 
-    public void invoke(Object... objects) {
-        lib.update(table.getTable(), keys, new SqlValues(objects), wheres, wheresValues);
+    public void change(Object... objects) {
+        lib.update(table.getTable(), keys, new SqlValues(objects), where, whereValues);
     }
 
-    public void invoke(String key, Object value) {
+    public void change(String key, Object value) {
         lib.update(table.getTable(), new SqlKeys(key), new SqlValues(value), new SqlKeys(), new SqlValues());
     }
 
-    public void invoke(String wheres, Object wheresValues, String key, Object value) {
+    public void change(String wheres, Object wheresValues, String key, Object value) {
         lib.update(table.getTable(), new SqlKeys(key), new SqlValues(value), new SqlKeys(wheres), new SqlValues(wheresValues));
+    }
+
+    public void delete() {
+        lib.remove(table.getTable(), where, whereValues);
+    }
+
+    public void delete(String where, Object whereValue) {
+        lib.remove(table.getTable(), new SqlKeys(where), new SqlValues(whereValue));
     }
 
     public SqlKeys getKeys() {
@@ -46,21 +54,21 @@ public class TableUpdate {
         return this;
     }
 
-    public SqlKeys getWheres() {
-        return wheres;
+    public SqlKeys getWhere() {
+        return where;
     }
 
     public TableUpdate setWhere(String... wheres) {
-        this.wheres = new SqlKeys(wheres);
+        this.where = new SqlKeys(wheres);
         return this;
     }
 
-    public SqlValues getWheresValues() {
-        return wheresValues;
+    public SqlValues getWhereValues() {
+        return whereValues;
     }
 
     public TableUpdate setWhereValues(Object... objects) {
-        this.wheresValues = new SqlValues(objects);
+        this.whereValues = new SqlValues(objects);
         return this;
     }
 }

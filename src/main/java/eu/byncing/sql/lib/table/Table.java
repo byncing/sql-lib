@@ -1,9 +1,11 @@
 package eu.byncing.sql.lib.table;
 
+import eu.byncing.sql.lib.DataTypes;
 import eu.byncing.sql.lib.SqlKeys;
 import eu.byncing.sql.lib.SqlLib;
-import eu.byncing.sql.lib.DataTypes;
 import eu.byncing.sql.lib.SqlValues;
+
+import java.util.function.Consumer;
 
 public class Table {
     private final SqlLib lib;
@@ -22,16 +24,24 @@ public class Table {
         lib.table(table, keys, types);
     }
 
+    public void deleteTable() {
+        lib.drop(table);
+    }
+
     public void insert(Object... objects) {
         lib.insert(table, keys, new SqlValues(objects));
     }
 
-    public TableUpdate update() {
-        return new TableUpdate(lib, this);
+    public void update(Consumer<TableUpdate> consumer, boolean async) {
+        TableUpdate update = new TableUpdate(lib, this);
+        if (async) lib.getScheduler().runAsync(() -> consumer.accept(update));
+        else consumer.accept(update);
     }
 
-    public TableFetch fetch() {
-        return new TableFetch(lib, this);
+    public void fetch(Consumer<TableFetch> consumer, boolean async) {
+        TableFetch fetch = new TableFetch(lib, this);
+        if (async) lib.getScheduler().runAsync(() -> consumer.accept(fetch));
+        else consumer.accept(fetch);
     }
 
     public String getTable() {
