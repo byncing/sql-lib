@@ -5,9 +5,10 @@ public enum DataTypes {
     STRING("VARCHAR(255)"),
     INTEGER("INT"),
     BOOLEAN("BOOL"),
-    FLOAT("FLOAT"),
+    FLOAT("REAL"),
     DOUBLE("DOUBLE"),
-    LONG("LONG");
+    LONG("BIGINT"),
+    BYTE("TINYINT");
 
     private final String value;
 
