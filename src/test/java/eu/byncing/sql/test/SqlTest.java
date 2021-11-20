@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class SqlTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException {
         SqlLib lib = new SqlLib();
         lib.connect(new Profile("127.0.0.1", 3306, "root", "bridge", ""));
 
