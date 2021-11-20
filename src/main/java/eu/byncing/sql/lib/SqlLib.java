@@ -7,7 +7,6 @@ import java.io.Closeable;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class SqlLib implements Closeable {
 
@@ -44,6 +43,18 @@ public class SqlLib implements Closeable {
         return null;
     }
 
+    public boolean existsTable(String table) {
+        try {
+            if (!isConnected()) return false;
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet result = metaData.getTables(null, null, table, null);
+            return result.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public Table table(String table) {
         return new Table(this, table);
     }
@@ -51,20 +62,23 @@ public class SqlLib implements Closeable {
     public PreparedStatement table(String table, SqlKeys keys, DataTypes... types) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < types.length; i++) {
-            builder.append(keys.getKeys()[i]).append(" ").append(types[i].getValue());
+            builder.append(keys.getArray()[i]).append(" ").append(types[i].getValue());
             if (i != types.length - 1) builder.append(", ");
         }
         return query("CREATE TABLE IF NOT EXISTS " + table + "(" + builder + ")", true);
+    }
+
+    public void drop(String table) {
+        if (!isConnected()) return;
+        query("DROP TABLE " + table, true);
     }
 
     public void insert(String table, SqlKeys keys, SqlValues values) {
         try {
             if (!isConnected()) return;
             PreparedStatement statement = query("INSERT INTO " + table + "(" + keys + ") VALUES (" + keys.toValues() + ")", false);
-            for (int i = 0; i < values.getValues().length; i++) {
-                Object value = values.getValues()[i];
-                if (value instanceof UUID) value = String.valueOf(value);
-                statement.setObject(i + 1, value);
+            for (int i = 0; i < values.length(); i++) {
+                statement.setObject(i + 1, values.getArray(i));
             }
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -75,24 +89,19 @@ public class SqlLib implements Closeable {
     public void update(String table, SqlKeys keys, SqlValues values, SqlKeys wheresKeys, SqlValues wheresValues) {
         try {
             if (!isConnected()) return;
-
             String query = "UPDATE " + table + " SET " + keys.toSet();
-            if (wheresKeys.getKeys().length > 0 && wheresValues.getValues().length > 0) {
+            if (wheresKeys.length() > 0 && wheresValues.length() > 0) {
                 query = query + " WHERE " + wheresKeys.toWhere();
             }
-
             PreparedStatement statement = query(query, false);
             int i1 = 0;
-            for (int i = 0; i < values.getValues().length; i++) {
+            for (int i = 0; i < values.length(); i++) {
                 i1++;
-                Object value = values.getValues()[i];
-                if (value instanceof UUID) value = String.valueOf(value);
-                statement.setObject(i + 1, value);
+                statement.setObject(i + 1, values.getArray(i));
             }
-
-            if (wheresKeys.getKeys().length > 0 && wheresValues.getValues().length > 0) {
+            if (wheresKeys.length() > 0 && wheresValues.length() > 0) {
                 int i2 = i1;
-                for (Object value : wheresValues.getValues()) {
+                for (Object value : wheresValues.getArray()) {
                     i2++;
                     statement.setObject(i2, value);
                 }
@@ -107,41 +116,43 @@ public class SqlLib implements Closeable {
         update(table, keys, values, new SqlKeys(), new SqlValues());
     }
 
-    public Map<Integer, Map<Integer, Object>> select(String table, int size) {
-        Map<Integer, Map<Integer, Object>> values = new HashMap<>();
+    public void remove(String table, SqlKeys where, SqlValues whereValues) {
         try {
-            if (!isConnected()) return values;
-            PreparedStatement statement = query("SELECT * FROM " + table, false);
+            if (!isConnected()) return;
+            PreparedStatement statement = query("DELETE FROM " + table + " WHERE " + where.toWhere(), false);
+            for (int i = 0; i < whereValues.length(); i++) {
+                statement.setObject(i + 1, whereValues.getArray(i));
+            }
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    public Map<Integer, Map<String, Object>> select(String table, SqlKeys tableKeys, SqlKeys keys, SqlKeys where, SqlValues whereValues) {
+        Map<Integer, Map<String, Object>> objects = new HashMap<>();
+        try {
+            if (!isConnected()) return objects;
+            String query = "SELECT * FROM " + table;
+            if (where.length() > 0 && whereValues.length() > 0) query = query + " WHERE " + where.toWhere();
+            PreparedStatement statement = query(query, false);
+            int count = 0;
+            for (int i = 0; i < whereValues.length(); i++) {
+                count++;
+                statement.setObject(i + 1, whereValues.getArray(i));
+            }
             ResultSet result = statement.executeQuery();
             int index = 0;
             while (result.next()) {
-                Map<Integer, Object> objects = new HashMap<>();
-                for (int i = 0; i < size; i++) objects.put(i, result.getObject(i + 1));
-                values.put(index++, objects);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return values;
-    }
-
-    public Map<String, Object> select(String table, SqlKeys keys, SqlKeys where, SqlValues whereValues) {
-        Map<String, Object> objects = new HashMap<>();
-        try {
-            if (!isConnected()) return objects;
-            PreparedStatement statement = query("SELECT * FROM " + table + " WHERE " + where.toWhere(), false);
-            int count = 0;
-            for (int i = 0; i < whereValues.getValues().length; i++) {
-                count++;
-                statement.setObject(i + 1, whereValues.getValues()[i]);
-            }
-            ResultSet result = statement.executeQuery();
-            while (result.next()) {
-                int index = count;
-                for (String key : keys.getKeys()) {
-                    index++;
-                    objects.put(key, result.getObject(index));
+                index++;
+                Map<String, Object> object = new HashMap<>();
+                for (int i = 0; i < tableKeys.length(); i++) {
+                    for (int i1 = 0; i1 < keys.length(); i1++) {
+                        String s1 = keys.getArray(i1);
+                        if (tableKeys.getArray(i).equals(s1)) object.put(s1, result.getObject(i + 1));
+                    }
                 }
+                objects.put(index - 1, object);
             }
         } catch (SQLException e) {
             e.printStackTrace();
