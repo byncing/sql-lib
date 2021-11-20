@@ -21,8 +21,6 @@ import eu.byncing.sql.lib.DataTypes;
 import eu.byncing.sql.lib.Profile;
 import eu.byncing.sql.lib.SqlLib;
 import eu.byncing.sql.lib.table.Table;
-import eu.byncing.sql.lib.table.TableFetch;
-import eu.byncing.sql.lib.table.TableUpdate;
 
 import java.util.Map;
 import java.util.UUID;
@@ -33,28 +31,86 @@ public class SqlTest {
         SqlLib lib = new SqlLib();
         lib.connect(new Profile("127.0.0.1", 3306, "root", "bridge", ""));
 
-        //Create a table with types
         Table table = lib.table("players");
-        table.setKeys("UNIQUE_ID", "NAME", "ONLINE").
-                setTypes(DataTypes.STRING, DataTypes.STRING, DataTypes.BOOLEAN).
-                createTable();
+        table.setKeys("UUID", "NAME", "CREATE_TIME", "ONLINE");
+        table.setTypes(DataTypes.STRING, DataTypes.STRING, DataTypes.LONG, DataTypes.BOOLEAN);
+        table.createTable();
 
-        //Add a value to a table
-        UUID uniqueId = UUID.randomUUID();
-        table.insert(uniqueId.toString(), "byncing", true);
+        PlayerData data = new PlayerData(UUID.randomUUID(), "byncing", System.currentTimeMillis(), true);
 
-        //Update a table with a key
-        TableUpdate update = table.update();
-        update.setWhere("UNIQUE_ID").setWhereValues(uniqueId.toString());
+        table.fetch(fetch -> {
+            if (!fetch.find("NAME", "byncing")) {
+                table.insert(data.serialize());
+            }
+            fetch.setWhere("NAME").setWhereValues("byncing");
+            PlayerData playerData = PlayerData.deserialize(fetch.single("UUID", "NAME", "CREATE_TIME", "ONLINE"));
+            System.out.println(playerData);
+        }, true);
 
-        update.setKeys("ONLINE").invoke(false);
+        table.update(update -> {
+            update.setWhere("NAME").setWhereValues("byncing");
+            table.fetch(fetch -> {
+                fetch.setWhere("NAME").setWhereValues("byncing");
+                update.setKeys("ONLINE").change(!fetch.single("ONLINE", Boolean.class));
+            }, false);
+        }, true);
+    }
 
-        //Fetch of a table with key
-        TableFetch fetch = table.fetch();
-        fetch.setKeys("UNIQUE_ID").setValues(uniqueId.toString());
+    public static class PlayerData {
 
-        Map<String, Object> values = fetch.invoke("NAME", "ONLINE");
-        values.forEach((s, o) -> System.out.println("key " + s + ", value " + o));
+        private final UUID uniqueId;
+        private final String name;
+        private final long createTime;
+        private boolean online;
+
+        public PlayerData(UUID uniqueId, String name, long createTime, boolean online) {
+            this.uniqueId = uniqueId;
+            this.name = name;
+            this.createTime = createTime;
+            this.online = online;
+        }
+
+        public Object[] serialize() {
+            return new Object[]{uniqueId, name, createTime, online};
+        }
+
+        public static PlayerData deserialize(Map<String, Object> values) {
+            return new PlayerData(
+                    UUID.fromString((String) values.get("UUID")),
+                    ((String) values.get("NAME")),
+                    ((Long) values.get("CREATE_TIME")),
+                    ((Boolean) values.get("ONLINE")));
+        }
+
+        public UUID getUniqueId() {
+            return uniqueId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public long getCreateTime() {
+            return createTime;
+        }
+
+        public boolean isOnline() {
+            return online;
+        }
+
+        public void setOnline(boolean online) {
+            this.online = online;
+        }
+
+        @Override
+        public String toString() {
+            return "PlayerData{" +
+                    "uniqueId=" + uniqueId +
+                    ", name='" + name + '\'' +
+                    ", createTime=" + createTime +
+                    ", online=" + online +
+                    '}';
+        }
     }
 }
 ````
