@@ -21,9 +21,12 @@ public class SqlKeys {
     }
 
     public String toValues() {
-        String values = toString();
-        for (String key : array) values = values.replace(key, "?");
-        return values;
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < array.length; i++) {
+            builder.append("?");
+            if (i != array.length - 1) builder.append(", ");
+        }
+        return builder.toString();
     }
 
     public String toSet() {
