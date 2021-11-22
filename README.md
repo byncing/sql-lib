@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation('eu.byncing:sql-lib:1.0.0-SNAPSHOT')
+    implementation('eu.byncing:sql-lib:2.0.1-SNAPSHOT')
 }
 ````
 &nbsp;
