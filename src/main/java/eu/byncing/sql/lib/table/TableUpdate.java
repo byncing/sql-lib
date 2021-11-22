@@ -25,7 +25,7 @@ public class TableUpdate {
         this(lib, table, new SqlKeys());
     }
 
-    public void change(Object... objects) {
+    public void changes(Object... objects) {
         lib.update(table.getTable(), keys, new SqlValues(objects), where, whereValues);
     }
 
