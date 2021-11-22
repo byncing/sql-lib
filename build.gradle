@@ -15,7 +15,7 @@ configurations {
 }
 
 dependencies {
-    extraLibs compileOnly('eu.byncing:scheduler:1.0.0-SNAPSHOT')
+    extraLibs compileOnly('eu.byncing:scheduler:1.0.1-SNAPSHOT')
     extraLibs compileOnly('mysql:mysql-connector-java:5.1.6')
 
     configurations.implementation.extendsFrom(configurations.extraLibs)

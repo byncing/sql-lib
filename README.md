@@ -20,7 +20,7 @@ package eu.byncing.sql.test;
 import eu.byncing.sql.lib.DataTypes;
 import eu.byncing.sql.lib.Profile;
 import eu.byncing.sql.lib.SqlLib;
-import eu.byncing.sql.lib.table.Table;
+import Table;
 
 import java.util.Map;
 import java.util.UUID;
