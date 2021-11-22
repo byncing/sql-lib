@@ -34,7 +34,7 @@ public class SqlTest {
             update.setWhere("NAME").setWhereValues("byncing");
             table.fetch(fetch -> {
                 fetch.setWhere("NAME").setWhereValues("byncing");
-                update.setKeys("ONLINE").change(!fetch.single("ONLINE", Boolean.class));
+                update.setKeys("ONLINE").changes(!fetch.single("ONLINE", Boolean.class));
             }, false);
         }, true);
     }
