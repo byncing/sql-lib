@@ -38,10 +38,18 @@ public class Table {
         else consumer.accept(update);
     }
 
+    public TableUpdate update() {
+        return new TableUpdate(lib, this);
+    }
+
     public void fetch(Consumer<TableFetch> consumer, boolean async) {
         TableFetch fetch = new TableFetch(lib, this);
         if (async) lib.getScheduler().runAsync(() -> consumer.accept(fetch));
         else consumer.accept(fetch);
+    }
+
+    public TableFetch fetch() {
+        return new TableFetch(lib, this);
     }
 
     public String getTable() {
