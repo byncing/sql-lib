@@ -5,9 +5,9 @@ A simple sql library that doesn't require you to write a single line of sql
 ````gradle
 repositories {
     maven {
-            url('http://repo.byncing.eu/snapshots')
-            allowInsecureProtocol(true)
-        }
+        url('http://repo.byncing.eu/snapshots')
+        allowInsecureProtocol(true)
+    }
 }
 
 dependencies {
