@@ -7,7 +7,10 @@ version '2.0.2-SNAPSHOT'
 
 repositories {
     mavenCentral()
-    maven { url('https://byncing.eu//repository/') }
+    maven { {
+        url('http://repo.byncing.eu/snapshots/') }
+        allowInsecureProtocol(true)
+    }
 }
 
 configurations {
@@ -15,7 +18,7 @@ configurations {
 }
 
 dependencies {
-    extraLibs compileOnly('eu.byncing:scheduler:1.0.1-SNAPSHOT')
+    extraLibs compileOnly('eu.byncing:scheduler:1.0.2-SNAPSHOT')
     extraLibs compileOnly('mysql:mysql-connector-java:5.1.6')
 
     configurations.implementation.extendsFrom(configurations.extraLibs)

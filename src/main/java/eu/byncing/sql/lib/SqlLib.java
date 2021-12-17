@@ -77,9 +77,7 @@ public class SqlLib implements Closeable {
         try {
             if (!isConnected()) return;
             PreparedStatement statement = query("INSERT INTO " + table + "(" + keys + ") VALUES (" + keys.toValues() + ")", false);
-            for (int i = 0; i < values.length(); i++) {
-                statement.setObject(i + 1, values.getArray(i));
-            }
+            for (int i = 0; i < values.length(); i++) statement.setObject(i + 1, values.getArray(i));
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -90,9 +88,7 @@ public class SqlLib implements Closeable {
         try {
             if (!isConnected()) return;
             String query = "UPDATE " + table + " SET " + keys.toSet();
-            if (wheresKeys.length() > 0 && wheresValues.length() > 0) {
-                query = query + " WHERE " + wheresKeys.toWhere();
-            }
+            if (wheresKeys.length() > 0 && wheresValues.length() > 0) query = query + " WHERE " + wheresKeys.toWhere();
             PreparedStatement statement = query(query, false);
             int i1 = 0;
             for (int i = 0; i < values.length(); i++) {
@@ -136,11 +132,7 @@ public class SqlLib implements Closeable {
             String query = "SELECT * FROM " + table;
             if (where.length() > 0 && whereValues.length() > 0) query = query + " WHERE " + where.toWhere();
             PreparedStatement statement = query(query, false);
-            int count = 0;
-            for (int i = 0; i < whereValues.length(); i++) {
-                count++;
-                statement.setObject(i + 1, whereValues.getArray(i));
-            }
+            for (int i = 0; i < whereValues.length(); i++) statement.setObject(i + 1, whereValues.getArray(i));
             ResultSet result = statement.executeQuery();
             int index = 0;
             while (result.next()) {
